@@ -1,0 +1,69 @@
+<div *ngIf="showLiveRaffle && selectedRaffle; else raffleList"
+     class="min-h-screen"
+     [style.background-image]="'url(' + getBrandingBackground() + ')'"
+     [style.background-size]="'cover'"
+     [style.background-position]="'center'"
+     [style.background-repeat]="'no-repeat'"
+     [style.background-attachment]="'fixed'">
+
+  <app-header></app-header>
+
+  <main class="py-8">
+    <div class="container mx-auto px-4">
+      <div class="mb-6">
+        <button (click)="handleBackToRaffles()"
+                class="bg-green-800 text-white px-6 py-2 font-medium transition-none hover:bg-green-800">
+          ← Regresar
+        </button>
+      </div>
+
+      <app-live-raffle-machine
+        [participants]="participants"
+        [selectedRaffle]="selectedRaffle"
+        (raffleComplete)="handleRaffleComplete($event)">
+      </app-live-raffle-machine>
+    </div>
+  </main>
+</div>
+
+<ng-template #raffleList>
+  <div class="min-h-screen bg-white">
+    <app-header></app-header>
+
+    <main>
+      <section id="sorteos" class="py-16">
+        <div class="container mx-auto px-4">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4 text-green-800">SORTEOS ACTIVOS</h2>
+            <p class="text-lg text-black max-w-2xl mx-auto">
+              Ten la oportunidad de ganar increíbles premios
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div *ngFor="let raffle of raffles$ | async; let i = index"
+                 class="bg-white border-2 border-yellow-400 shadow-lg overflow-hidden rounded-lg"
+                 [style.animation-delay]="i * 200 + 'ms'">
+
+              <div class="relative">
+                <img [src]="raffle.imageUrl"
+                     [alt]="raffle.promocion"
+                     class="w-full h-48 object-cover">
+              </div>
+
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-black">{{ raffle.promocion }}</h3>
+                <p class="text-gray-600 mb-4">{{ raffle.descripcion }}</p>
+
+                <button (click)="handleStartLiveRaffle(raffle)"
+                        class="w-full bg-green-800 hover:bg-green-800 text-white font-bold py-3 border-0 shadow-lg rounded">
+                  INICIAR SORTEO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</ng-template>

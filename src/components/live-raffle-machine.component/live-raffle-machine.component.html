@@ -1,0 +1,61 @@
+<div class="w-full max-w-5xl mx-auto px-4">
+  <div class="text-center mb-8 relative">
+    <div class="flex justify-center">
+      <img [src]="branding.logo" [alt]="branding.alt" class="h-32 w-auto object-contain" />
+    </div>
+  </div>
+
+  <div class="bg-gradient-to-br from-green-700 via-green-800 to-green-900 p-12 border-4 border-green-600 shadow-2xl rounded-xl w-full mx-auto min-h-[50vh] mb-8 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+
+    <div class="h-full flex flex-col items-center justify-center relative z-10">
+      <div *ngIf="!raffleState.isSpinning && raffleState.winner && !showingAction"
+           class="text-3xl font-bold text-white mb-6 animate-bounce">🏆 GANADOR 🏆</div>
+
+      <div class="flex flex-col items-center justify-center flex-grow">
+        <div *ngIf="firstReelHasNames"
+             [class]="'text-7xl font-black text-white transition-all duration-100 text-center mb-8 drop-shadow-2xl ' +
+                     (firstReel.isSpinning ? 'blur-sm animate-pulse' : 'animate-bounce')"
+             style="text-shadow: 0 0 20px rgba(255,255,255,0.5)">
+          {{ currentDisplayText }}
+        </div>
+
+        <div *ngIf="raffleState.isSpinning && showingAction"
+             class="text-2xl font-bold text-white text-center animate-pulse">
+          Acción Ganadora
+        </div>
+
+        <div *ngIf="raffleState.winner && !raffleState.isSpinning && winnerCode"
+             class="text-2xl font-bold text-white text-center bg-black/20 px-6 py-3 rounded-lg backdrop-blur-sm">
+          Acción Electrónica: {{ winnerCode }}
+        </div>
+      </div>
+
+      <div class="flex justify-center mt-8">
+        <div [class]="'w-8 h-8 rounded-full border-4 border-white shadow-lg ' +
+                     (firstReel.isSpinning ? 'bg-red-500 animate-spin' : 'bg-green-400')">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full flex flex-col items-center">
+    <div class="flex justify-center items-center gap-8 w-full max-w-3xl">
+      <button (click)="startRaffle()"
+              [disabled]="raffleState.isSpinning || raffleState.winner !== undefined"
+              [class]="'bg-gradient-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900 text-white font-bold px-12 py-6 text-xl border-2 border-green-600 shadow-xl rounded-xl flex-1 max-w-xs transform hover:scale-105 transition-all duration-200 flex items-center justify-center ' +
+                      (raffleState.winner ? 'opacity-50 cursor-not-allowed' : '')">
+        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        {{ raffleState.isSpinning ? 'GIRANDO...' : 'INICIAR SORTEO' }}
+      </button>
+
+      <button *ngIf="raffleState.winner"
+              (click)="resetRaffle()"
+              class="bg-gradient-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900 text-white font-bold px-12 py-6 text-xl border-2 border-green-600 shadow-xl rounded-xl flex-1 max-w-xs transform hover:scale-105 transition-all duration-200 opacity-50 cursor-not-allowed">
+        NUEVO SORTEO
+      </button>
+    </div>
+  </div>
+</div>
