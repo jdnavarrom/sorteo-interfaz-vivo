@@ -78,10 +78,22 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
   }
 
   startRaffle(): void {
-
     this.sorteo = this.selectedRaffle?.codigo.valueOf();
+    if (!this.sorteo) return;
+
+    this.showingAction = true;
+    this.raffleState.isSpinning = true;
+    this.actionReels.isSpinning = true;
+    this.actionReels.currentIndex = 0;
+
+    this.actionIntervalRef = setInterval(() => {
+      this.actionReels.currentIndex =
+        (this.actionReels.currentIndex + 1) % this.actionReels.actions.length;
+    }, 150);
+
     this.sorteoService.ejecutarSorteo(this.sorteo).subscribe({
       next: (ganador) => {
+        console.log("Ganador recibido:", ganador);
         this.ganador = ganador;
       },
       error: (err) => {
@@ -89,21 +101,6 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
         this.error = err;
       }
     });
-
-    this.winnerCode = this.ganador?.uuid;
-    this.showingAction = true;
-
-    this.raffleState.isSpinning = true;
-    this.actionReels.isSpinning = true;
-
-    this.actionIntervalRef = setInterval(() => {
-      this.actionReels.currentIndex = (this.actionReels.currentIndex + 1) % this.actionReels.actions.length;
-    }, 150);
-
-    this.reels[0].isSpinning = true;
-    this.intervalRefs[0] = setInterval(() => {
-      this.reels[0].currentIndex = (this.reels[0].currentIndex + 1) % this.reels[0].names.length;
-    }, this.reels[0].speed);
 
     setTimeout(() => {
       if (this.actionIntervalRef) {
@@ -113,14 +110,11 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
       this.actionReels.isSpinning = false;
     }, 10000);
 
-    setTimeout(() => this.stopReel(0), 10000);
-
     setTimeout(() => {
       this.showingAction = false;
-      const winner = this.ganador;
       this.raffleState.isSpinning = false;
-      this.raffleState.winner = winner;
-      this.raffleComplete.emit(winner);
+      this.raffleState.winner = this.ganador;
+      this.raffleComplete.emit(this.ganador);
     }, 20000);
   }
 
@@ -139,14 +133,6 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
     this.showingAction = false;
   }
 
-  private stopReel(reelIndex: number): void {
-    if (this.intervalRefs[reelIndex]) {
-      clearInterval(this.intervalRefs[reelIndex]);
-      this.intervalRefs[reelIndex] = null;
-    }
-    this.reels[reelIndex].isSpinning = false;
-  }
-
   private clearAllIntervals(): void {
     this.intervalRefs.forEach(interval => { if (interval) clearInterval(interval); });
     if (this.actionIntervalRef) { clearInterval(this.actionIntervalRef); this.actionIntervalRef = null; }
@@ -157,21 +143,21 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
   }
 
   get currentDisplayText(): string {
-    if (this.raffleState.isSpinning && this.showingAction) {
-      console.log("UUID" + this.ganador?.uuid)
-      return this.actionReels.isSpinning
-        ? this.actionReels.actions[this.actionReels.currentIndex]
-        : this.ganador?.uuid  || "---" ;
-
-    } else if (this.raffleState.isSpinning && !this.showingAction) {
-      return this.reels[0].names.length > 0 ? this.reels[0].names[this.reels[0].currentIndex] : "---";
-    } else if (this.ganador?.nombreCliente && !this.showingAction) {
-      return <string>this.raffleState.winner?.nombreCliente;
+    if (this.raffleState.isSpinning && this.showingAction && this.actionReels.isSpinning) {
+      return this.actionReels.actions[this.actionReels.currentIndex];
     }
+
+    if (this.raffleState.isSpinning && this.showingAction && !this.actionReels.isSpinning) {
+      return this.ganador?.uuid || "Esperando ganador...";
+    }
+
+    if (!this.raffleState.isSpinning && this.ganador?.nombreCliente) {
+      return this.ganador.nombreCliente;
+    }
+
     return "---";
   }
 
-  // ✅ Getter seguro para el HTML
   get firstReelHasNames(): boolean {
     return this.reels.length > 0 && this.reels[0].names.length > 0;
   }

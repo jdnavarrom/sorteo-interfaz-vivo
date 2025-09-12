@@ -34,12 +34,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.raffles$ = this.sorteoService.listarSorteos();
-    console.log("Datos de sorteos" + this.raffles$);
   }
 
   handleStartLiveRaffle(raffle: sorteoDto): void {
     this.selectedRaffle = raffle
-    console.log("seleccionado" + " " + raffle.codigo);
     this.showLiveRaffle = true
   }
 
