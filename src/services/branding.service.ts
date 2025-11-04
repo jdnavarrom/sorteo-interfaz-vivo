@@ -8,9 +8,9 @@ export class BrandingService {
   getBrandingForRaffle(raffleTitle: string): BrandingConfig {
     if (raffleTitle.toLowerCase().includes("moto")) {
       return {
-        logo: "/moto_adrenalina_logo.avif",
-        background: "/moto_adrenalina_fondo.avif",
-        alt: "Moto Adrenalina",
+        logo: "/dac_logo.avif",
+        background: "/dac_fondo.avif",
+        alt: "Motocicleta con DAC",
       }
     }
 
