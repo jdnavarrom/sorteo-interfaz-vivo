@@ -1,0 +1,12 @@
+version: '3'
+services:
+  sorteos-live:
+    image: ${REGISTRY}/sorteos-live:${VERSION}
+    container_name: sorteos-live
+    build:
+      context: .
+    ports:
+      - "80:80"
+    environment:
+      - TZ=America/Costa_Rica
+      - SPRING_PROFILES_ACTIVE=${PROFILE}

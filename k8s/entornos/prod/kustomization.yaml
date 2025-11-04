@@ -1,0 +1,18 @@
+namespace: sorteos-live
+images:
+  - name: 10.1.10.13:5000/sorteos-live
+    newName: 10.1.10.13:5000/prod/sorteos/sorteos-live
+    newTag: v1.0.0
+resources:
+  - ../../base
+patches:
+  - target:
+      kind: Ingress
+      name: sorteos-live-ingress
+    patch: |-
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: sorteos-live.coopetarrazu.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: sorteos-live.coopetarrazu.com
