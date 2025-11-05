@@ -1,3 +1,3 @@
 export const environment = {
-  endpoint: 'http://localhost:8081/tareas',
+  endpoint: 'http://localhost:8081',
 };

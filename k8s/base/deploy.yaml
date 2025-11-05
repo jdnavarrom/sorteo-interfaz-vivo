@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sorteos-live-deploy
-  namespace: sorteos-live-dev
 spec:
   replicas: 1
   selector:
@@ -16,9 +15,6 @@ spec:
       containers:
         - name: sorteos-live
           image: 10.1.10.13:5000/sorteos-live:v1.0.0
-#          envFrom:
-#            - configMapRef:
-#                name: ms-config
           ports:
             - containerPort: 80
           imagePullPolicy: Always

@@ -1,3 +1,4 @@
 export const environment = {
-  endpoint: 'http://ms-acciones-tareas-svc.sorteos.svc.cluster.local/tareas',
+  endpoint: 'http://localhost:8081',
+  // endpoint: 'https://sorteos-live.coopetarrazu.dev',
 };

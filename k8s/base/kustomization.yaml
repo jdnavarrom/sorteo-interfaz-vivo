@@ -1,4 +1,7 @@
 resources:
-  - deploy.yaml
-  - svc.yaml
+#  - namespace.yaml
+#  - certificado-live.yaml
+#  - deploy.yaml
+#  - svc.yaml
+#  - proxy-svc.yaml
   - ingress.yaml

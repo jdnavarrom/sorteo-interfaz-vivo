@@ -1,7 +1,7 @@
 namespace: sorteos-live-dev
 images:
   - name: 10.1.10.13:5000/sorteos-live
-    newName: 10.1.10.13:5000/dev/sorteos/sorteos-live
+    newName: 10.1.10.13:5000/dev/sorteos-live/sorteos-live
     newTag: v1.0.0
 resources:
   - ../../base

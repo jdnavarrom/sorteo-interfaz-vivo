@@ -2,16 +2,15 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: sorteos-live-ingress
-  namespace: sorteos-live-dev
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: "nginx-interno"  # Asegúrate de que esta línea esté presente
+  ingressClassName: "nginx-interno"
   tls:
     - hosts:
         - sorteos-live.coopetarrazu.dev
-      secretName: sorteos-live-secret
+      secretName: sorteos-live-tls-secret
   rules:
     - host: sorteos-live.coopetarrazu.dev
       http:
@@ -23,3 +22,10 @@ spec:
                 name: sorteos-live-svc
                 port:
                   number: 80
+#          - path: /sorteos
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: ms-acciones-tareas-svc   # alias local
+#                port:
+#                  number: 80
