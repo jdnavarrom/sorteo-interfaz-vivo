@@ -22,10 +22,3 @@ spec:
                 name: sorteos-live-svc
                 port:
                   number: 80
-#          - path: /sorteos
-#            pathType: Prefix
-#            backend:
-#              service:
-#                name: ms-acciones-tareas-svc   # alias local
-#                port:
-#                  number: 80
