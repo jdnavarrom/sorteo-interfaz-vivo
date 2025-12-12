@@ -31,8 +31,8 @@ export class SorteoService {
     )
   }
 
-  ejecutarSorteo(sorteo: number | undefined): Observable<ganadorDto>  {
-    return this.http.get<ganadorDto>(`${environment.endpoint}/sorteos/sorteo?sorteo=${sorteo}`).pipe(
+  ejecutarSorteo(sorteo: number | undefined): Observable<ganadorDto[]> {
+    return this.http.get<ganadorDto[]>(`${environment.endpoint}/sorteos/sorteo?sorteo=${sorteo}`).pipe(
       catchError((error) => {
         console.error("Error:", error)
         if (error instanceof HttpErrorResponse) {
@@ -46,5 +46,4 @@ export class SorteoService {
       }),
     )
   }
-
 }

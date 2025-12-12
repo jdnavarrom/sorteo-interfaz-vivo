@@ -1,4 +1,154 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ---------- contenedor neutro que ocupa la zona central ---------- */
+.contenedor-ganadores {
+  position: absolute;
+  inset: 0;               /* ocupa todo el panel interior */
+  z-index: 10;
+  padding: 32px;
+  border-radius: 12px;
 
+  /* fondo neutro suave: mantiene contraste contra cualquier fondo dinámico */
+  background: linear-gradient(180deg, rgba(20,20,20,0.28), rgba(10,10,10,0.22));
+  backdrop-filter: blur(10px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  color: #e9f7ef;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* título elegante, adaptable a singular/plural */
+.titulo-ganadores {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  letter-spacing: 0.6px;
+  display: block;
+}
+
+/* texto grande mientras gira */
+.accion-girando .text-4xl {
+  text-shadow: 0 4px 30px rgba(255,200,0,0.12);
+}
+
+/* panel que contiene los ganadores (tarjetas) */
+.ganadores-panel {
+  width: 100%;
+}
+
+/* scroll interno (oculto) */
+.scroll-ganadores {
+  max-height: 360px;     /* ajustar según necesidad */
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-top: 12px;
+}
+
+/* ocultar scrollbar manteniendo scroll funcional */
+.scroll-ganadores::-webkit-scrollbar { width: 0; height: 0; }
+.scroll-ganadores { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* tarjeta neutra, no negra, con buen contraste */
+.ganador-card {
+  background: rgba(255,255,255,0.06); /* muy neutro y translúcido */
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* pequeño hover para foco en pantallas táctiles/ratón */
+.ganador-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.55);
+}
+
+/* premio (resaltar) */
+.premio {
+  color: #ffd66b;
+  font-weight: 800;
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+
+/* datos */
+.datos { color: #d8fbd8; font-size: 0.95rem; line-height: 1.4; }
+.datos .uuid { word-break: break-all; color: #c6f6d5; }
+
+/* LED (ya definido, pero por si acaso) */
+.w-8.h-8 { }
+
+/* ---------------- Ruleta grande (en pantalla) ---------------- */
+/* wrapper opcional */
+.roulette-wrapper { display:flex; justify-content:center; align-items:center; margin-top: 8px; }
+
+/* ruleta grande: usa conic-gradient para colores */
+.roulette {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ffbf00 0deg 45deg,
+    #ff6b6b 45deg 90deg,
+    #6bceff 90deg 135deg,
+    #8aff7a 135deg 180deg,
+    #ffd36b 180deg 225deg,
+    #c18aff 225deg 270deg,
+    #6bffdf 270deg 315deg,
+    #ff8ab3 315deg 360deg
+  );
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 -6px 18px rgba(0,0,0,0.12);
+  animation: spin-roulette 1.1s linear infinite;
+  border: 6px solid rgba(255,255,255,0.08);
+}
+
+/* velocidad y suavidad */
+@keyframes spin-roulette {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------- Ruleta pequeña dentro del botón ---------------- */
+.boton-iniciar {
+  background: linear-gradient(180deg,#2f5a2f,#3b692f);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  min-width: 220px;
+}
+
+/* contenedor de la ruleta en el botón */
+.btn-roulette-container {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ocultar con clase .hidden (si usás Tailwind también funciona) */
+.hidden { display: none !important; }
+
+/* mini-ruleta (conic-gradient) */
+.btn-roulette {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(#ffd66b,#ff6b6b,#6bceff,#8aff7a);
+  animation: spin-roulette 0.9s linear infinite;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 2px solid rgba(0,0,0,0.12);
+}
+
+/* texto botón */
+.btn-text { font-weight: 700; letter-spacing: 0.4px; }
+
+/* animación sutil de aparición */
+@keyframes subtle-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
