@@ -6,19 +6,19 @@ import { BrandingConfig } from "../models/raffle.model"
 })
 export class BrandingService {
   getBrandingForRaffle(raffleTitle: string): BrandingConfig {
-    if (raffleTitle.includes("Grupo Q")) {
+    if (raffleTitle.includes("MAS AVENTURAS")) {
       return {
-        logo: "moto_adrenalina_logo.avif",
-        background: "moto_adrenalina_fondo.avif",
-        alt: "Motocicleta Crossmax 250 Grupo Q",
+        logo: "/Mas_aventuras_TITULO_CASTROL.avif",
+        background: "/Mas_aventuras_FONDO_CASTROL.avif",
+        alt: "Primer sorteo MAS AVENTURAS",
       }
     }
 
-    if (raffleTitle.includes("Ferre TODO Terreno")) {
+    if (raffleTitle.includes("ARRANCA VIAJA Y GANA")) {
       return {
-        logo: "/FerreTODOterreno_logo.avif",
-        background: "/FerreTODOterreno_fondo.avif",
-        alt: "Ferre TODO Terreno",
+        logo: "/Logo_ARRANCA_VIAJA_Y_GANA.avif",
+        background: "/fondo_ARRANCA_VIAJA_Y_GANA.avif",
+        alt: "ARRANCA VIAJA Y GANA",
       }
     }
 
