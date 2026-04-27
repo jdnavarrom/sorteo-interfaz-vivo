@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: sorteos-live
-          image: 10.1.10.13:5000/sorteos-live:v1.0.0
+          image: harbor.coopetarrazu.com:8443/sorteos-live:v1.0.0
           ports:
             - containerPort: 80
           imagePullPolicy: Always

@@ -1,7 +1,7 @@
 namespace: sorteos-live
 images:
-  - name: 10.1.10.13:5000/sorteos-live
-    newName: 10.1.10.13:5000/prod/sorteos-live/sorteos-live
+  - name: harbor.coopetarrazu.com:8443/sorteos-live
+    newName: harbor.coopetarrazu.com:8443/cluster/prod/sorteos-live/sorteos-live
     newTag: v1.0.0
 resources:
   - ../../base
