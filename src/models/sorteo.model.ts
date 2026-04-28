@@ -9,6 +9,7 @@ export interface sorteoDto {
   ganadorPorDepartamento: boolean,
   esManual: true,
   promocion: string,
-  imageUrl: string
+  imageUrl: string,
+  backgroundUrl: string,
 
 }

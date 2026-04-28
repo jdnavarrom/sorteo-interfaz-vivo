@@ -26,30 +26,36 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
-# Cargar variables de entorno desde .env si existe
+# Cargar variables de entorno desde .env
 if [ -f "$DIR/.env" ]; then
-  set -a  # Exporta todas las variables que se carguen a continuación
+  set -a
   source "$DIR/.env"
   set +a
 else
-  echo "⚠️  No se encontró el archivo .env, usando valores predeterminados"
-  REGISTRY="10.1.10.13:5000"  # Registro por defecto
+  echo "❌ No se encontró el archivo .env"
+  exit 1
 fi
 
-ORIGINAL_REGISTRY="$REGISTRY"  # Guardar valor original
+# 🔐 VALIDACIÓN DE VARIABLES DE HARBOR
+: "${HARBOR_REGISTRY:?Falta definir HARBOR_REGISTRY en .env}"
+: "${HARBOR_USERNAME:?Falta definir HARBOR_USERNAME en .env}"
+: "${HARBOR_PASSWORD:?Falta definir HARBOR_PASSWORD en .env}"
+: "${REGISTRY:?Falta definir REGISTRY en .env}"
+: "${PROJECT:?Falta definir PROJECT en .env}"
 
+ORIGINAL_REGISTRY="$REGISTRY"
 LAST_ENV=""
 
 while true; do
-  REGISTRY="$ORIGINAL_REGISTRY"  # Restaurar valor original al inicio de cada ciclo
+  REGISTRY="$ORIGINAL_REGISTRY"
 
   # Pedir ambiente
   if [ -z "${ENVIRONMENT-}" ]; then
     if [ -n "$LAST_ENV" ]; then
-      read -rp "Ingresa el ambiente (dev/prod) [último: $LAST_ENV]: " ENVIRONMENT || ENVIRONMENT="$LAST_ENV"
+      read -rp "Ingresa el ambiente (dev/prod) [último: $LAST_ENV]: " ENVIRONMENT
       ENVIRONMENT=${ENVIRONMENT:-$LAST_ENV}
     else
-      read -rp "Ingresa el ambiente (dev/prod): " ENVIRONMENT || ENVIRONMENT=""
+      read -rp "Ingresa el ambiente (dev/prod): " ENVIRONMENT
     fi
   fi
 
@@ -62,8 +68,8 @@ while true; do
 
   LAST_ENV="$ENVIRONMENT"
 
-  # Preguntar si subir imagenes
-  read -rp "¿Deseas subir las imágenes al repositorio? (y/n): " PUSH_CONFIRM || PUSH_CONFIRM="n"
+  # Preguntar si subir imágenes
+  read -rp "¿Deseas subir las imágenes al repositorio? (y/n): " PUSH_CONFIRM
   if [[ "$PUSH_CONFIRM" =~ ^[Nn]$ ]]; then
     ONLY_BUILD=true
   else
@@ -72,10 +78,8 @@ while true; do
 
   # Concatenar ambiente al REGISTRY
   REGISTRY="${REGISTRY%/}/$ENVIRONMENT/${PROJECT%/}"
-
   export REGISTRY ENVIRONMENT
 
-  # Archivo docker-compose
   DOCKER_COMPOSE_FILE="$DIR/docker-compose-$ENVIRONMENT.yaml"
   if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
     echo "❌ No se encontró el archivo $DOCKER_COMPOSE_FILE"
@@ -84,28 +88,30 @@ while true; do
     continue
   fi
 
-#  echo "📦 Variables cargadas:"
-#  env | grep -E 'REGISTRY|ENVIRONMENT|PROFILE|VERSION|_VERSION' || true
-
-  # Verificar docker
+  # Verificar Docker
   if ! docker info >/dev/null 2>&1; then
-    echo "❌ Docker no está corriendo. Inícialo e intenta nuevamente."
-    $NO_PAUSE || read -p "Presiona cualquier tecla para continuar..."
-    ENVIRONMENT=""
-    continue
+    echo "❌ Docker no está corriendo."
+    exit 1
   fi
 
-  # Ejecutar build
+  # 🔐 LOGIN AUTOMÁTICO A HARBOR (ROBOT ACCOUNT)
+  if ! $ONLY_BUILD; then
+    echo "🔐 Autenticando contra Harbor: $HARBOR_REGISTRY"
+    echo "$HARBOR_PASSWORD" | docker login "$HARBOR_REGISTRY" \
+      --username "$HARBOR_USERNAME" \
+      --password-stdin
+    echo "✅ Login a Harbor exitoso"
+  fi
+
+  # Build
   echo "🔧 Ejecutando build con $DOCKER_COMPOSE_FILE..."
   docker-compose -f "$DOCKER_COMPOSE_FILE" build
 
-  if $ONLY_BUILD; then
-    echo "✅ Build completado. No se realizó push por elección del usuario."
-  else
+  if ! $ONLY_BUILD; then
     SERVICES=$(grep -E '^\s*image:' "$DOCKER_COMPOSE_FILE" | awk '{print $2}' | tr -d '"' | grep -v '^#')
+
     if [ -z "$SERVICES" ]; then
-      echo "❌ No se encontraron servicios con imagen en $DOCKER_COMPOSE_FILE"
-      $NO_PAUSE || read -p "Presiona cualquier tecla para continuar..."
+      echo "❌ No se encontraron imágenes en $DOCKER_COMPOSE_FILE"
       ENVIRONMENT=""
       continue
     fi
@@ -114,29 +120,25 @@ while true; do
     PUSH_COMMANDS=()
 
     env_expand() {
-      local raw="$1"
-      echo "$raw" | envsubst
+      echo "$1" | envsubst
     }
 
     for SERVICE in $SERVICES; do
       IMAGE_NAME=$(env_expand "$SERVICE")
 
       if [[ "$IMAGE_NAME" == *"\${"* ]]; then
-        echo "❌ Error: La imagen '$SERVICE' aún contiene variables sin reemplazar."
+        echo "❌ Imagen con variables sin reemplazar: $SERVICE"
         FAILED_IMAGES+=("$SERVICE")
         continue
       fi
 
-      echo "⬆️  Subiendo la imagen: $IMAGE_NAME"
+      echo "⬆️  Subiendo imagen: $IMAGE_NAME"
 
       if $PARALLEL; then
         (
-          if docker push "$IMAGE_NAME"; then
-            echo "✅ Imagen subida: $IMAGE_NAME"
-          else
-            echo "❌ Error al subir la imagen: $IMAGE_NAME"
-            FAILED_IMAGES+=("$IMAGE_NAME")
-          fi
+          docker push "$IMAGE_NAME" && \
+          echo "✅ Imagen subida: $IMAGE_NAME" || \
+          FAILED_IMAGES+=("$IMAGE_NAME")
         ) &
         PUSH_COMMANDS+=($!)
       else
@@ -154,14 +156,17 @@ while true; do
     fi
 
     if [ ${#FAILED_IMAGES[@]} -gt 0 ]; then
-      echo "❌ Se encontraron errores al subir las siguientes imágenes:"
+      echo "❌ Errores al subir imágenes:"
       for img in "${FAILED_IMAGES[@]}"; do
         echo "   - $img"
       done
     fi
+
+    # 🔐 LOGOUT (BUENA PRÁCTICA)
+    docker logout "$HARBOR_REGISTRY" >/dev/null 2>&1 || true
   fi
 
-  read -rp $'\n¿Deseas realizar otra operación? (y/n): ' CONTINUE || CONTINUE="n"
+  read -rp $'\n¿Deseas realizar otra operación? (y/n): ' CONTINUE
   if [[ "$CONTINUE" =~ ^[Nn]$ ]]; then
     echo "👋 Saliendo del script."
     break
@@ -171,3 +176,4 @@ while true; do
   ONLY_BUILD=false
   echo "----------------------------------------------"
 done
+``

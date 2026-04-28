@@ -1,10 +1,10 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, ChangeDetectorRef, EventEmitter, Input, OnDestroy, OnInit, OnChanges, SimpleChanges, Output, Renderer2} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {LiveRaffleState, Participant} from '../../models/raffle.model';
-import {BrandingService} from '../../services/branding.service';
 import {SorteoService} from '../../services/sorteo-service';
 import {sorteoDto} from '../../models/sorteo.model';
 import {ganadorDto} from '../../models/ganador.model';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-live-raffle-machine',
@@ -13,13 +13,16 @@ import {ganadorDto} from '../../models/ganador.model';
   templateUrl: './live-raffle-machine.component.html',
   styleUrls: ['./live-raffle-machine.component.css']
 })
-export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
+export class LiveRaffleMachineComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() participants: Participant[] = [];
   @Input() selectedRaffle?: sorteoDto;
   @Output() raffleComplete = new EventEmitter<ganadorDto>();
   sorteo: number | undefined = 0;
+  raffles$!: Observable<sorteoDto[]>
   ganadores: ganadorDto[] = [];
+  sorteoSeleccionado: sorteoDto;
+  sorteos: sorteoDto[] = [];
   error: string;
   raffleState: LiveRaffleState = {
     isSpinning: false,
@@ -33,18 +36,33 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
   private actionIntervalRef: any = null;
 
   constructor(
-    private brandingService: BrandingService,
     private sorteoService: SorteoService,
+    private cdr: ChangeDetectorRef,
+    private renderer: Renderer2,
   ) {
     this.error = "";
+    this.sorteoSeleccionado = {} as sorteoDto;
   }
 
   ngOnInit(): void {
+    this.raffles$ = this.sorteoService.listarSorteos();
+    this.sorteoService.listarSorteos().subscribe(sorteos => {
+      this.sorteos = sorteos;
+      this.cdr.detectChanges();
+      this.setBodyBackground();
+    });
+    this.setBodyBackground();
+  }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedRaffle']) {
+      this.setBodyBackground();
+    }
   }
 
   ngOnDestroy(): void {
     this.clearAllIntervals();
+    this.clearBodyBackground();
   }
 
   startRaffle(): void {
@@ -84,8 +102,42 @@ export class LiveRaffleMachineComponent implements OnInit, OnDestroy {
     }
   }
 
+  setBodyBackground() {
+    const background = this.branding.background;
+    this.renderer.setStyle(document.body, 'background-image', `url('${background}')`);
+    this.renderer.setStyle(document.body, 'background-size', 'cover');
+    this.renderer.setStyle(document.body, 'background-position', 'center');
+    this.renderer.setStyle(document.body, 'background-repeat', 'no-repeat');
+  }
+
+  clearBodyBackground() {
+    this.renderer.removeStyle(document.body, 'background-image');
+    this.renderer.removeStyle(document.body, 'background-size');
+    this.renderer.removeStyle(document.body, 'background-position');
+    this.renderer.removeStyle(document.body, 'background-repeat');
+  }
+
   get branding() {
-    return this.brandingService.getBrandingForRaffle(this.selectedRaffle?.promocion || "");
+    const sorteo = this.sorteos.find(s => s.promocion === this.selectedRaffle?.promocion);
+    // Utiliza backgroundUrl del sorteo si existe y no está vacío
+    let background = sorteo?.backgroundUrl || this.selectedRaffle?.backgroundUrl || '';
+    if (background && !background.startsWith('/')) {
+      background = '/' + background;
+    }
+    if (!background || background.trim() === '') {
+      background = '/cosecha_y_conduce_fondo.avif';
+    }
+    // Lo mismo para el logo
+    let logo = sorteo?.imageUrl || this.selectedRaffle?.imageUrl || '';
+    if (logo && !logo.startsWith('/')) {
+      logo = '/' + logo;
+    }
+    if (!logo || logo.trim() === '') {
+      logo = '/cosecha_y_conduce_logo.aviv';
+    }
+    const alt = sorteo?.promocion || this.selectedRaffle?.promocion || 'Sorteo';
+    console.log('branding:', {logo, background, alt, sorteo, selectedRaffle: this.selectedRaffle});
+    return { logo, background, alt };
   }
 
   // Getter para el título adaptable
